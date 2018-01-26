@@ -11,7 +11,7 @@ touch $filename
 pandoc -o $outfile $filename
 
 # refresh output based on changes in source
-job1=$(echo "echo $filename | entr pandoc -o $outfile $filename" | at now |& awk '{print $2}')
+job1=$(echo "echo $filename | entr pandoc -o $outfile -c ~/.mdnote/styling.css $filename" | at now |& awk '{print $2}')
 
 # open viewer: dillo
 dillo $outfile > /dev/null 2>&1 </dev/null &
