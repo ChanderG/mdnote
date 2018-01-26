@@ -1,0 +1,32 @@
+#!/bin/bash
+
+trap "kill 0" SIGINT
+
+filename=$1
+outfile="$(basename -s .md $filename).html"
+
+# setup file if not exists
+touch $filename
+# create initial output
+pandoc -o $outfile $filename
+
+# refresh output based on changes in source
+job1=$(echo "echo $filename | entr pandoc -o $outfile $filename" | at now |& awk '{print $2}')
+
+# open viewer: dillo
+dillo $outfile > /dev/null 2>&1 </dev/null &
+# go into tiling mode
+xdotool key "alt+t"
+# remove the top bar
+xdotool search --sync --onlyvisible --class Dillo key --window %@ "Escape"
+
+# reload the viewer
+job2=$(echo "export DISPLAY=:0 && echo $outfile | entr xdotool search --onlyvisible --class Dillo key --window %@ r" | at now |& awk '{print $2}')
+
+# finally open the file for editing
+vim $filename
+
+atrm $job1
+atrm $job2
+
+kill 0
